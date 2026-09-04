@@ -1,7 +1,7 @@
 {
   "name": "dsh-theme-cutout-clash",
   "version": "0.5.7",
-  "description": "Selectable neo-brutalist pop-art themes for DeepSeek Harness Web with calm reading surfaces and reversible Slot-based plate transitions.",
+  "description": "EN: Selectable neo-brutalist/pop-art themes for DeepSeek Harness Web with calm reading surfaces. ZH: 面向 DeepSeek Harness Web、兼顾安静阅读表面的新粗野主义与波普艺术主题。",
   "type": "module",
   "main": "lib/index.js",
   "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },

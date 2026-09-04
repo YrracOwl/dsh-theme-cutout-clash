@@ -1,5 +1,13 @@
 # dsh-theme-cutout-clash
 
+## English
+
+Cutout Clash is a selectable neo-brutalist/pop-art theme bundle for DeepSeek Harness Web. It keeps conversation content calm while adding expressive shell, Composer, Goal, and transition surfaces. The Client Store compatibility path targets DSH 0.1.2+, with a legacy runtime fallback for older RC hosts.
+
+## 中文
+
+Cutout Clash 是面向 DeepSeek Harness Web 的可选择新粗野主义 / 波普艺术主题包：保持会话内容安静易读，同时增强 Shell、Composer、Goal 和转场表面。优先使用 DSH 0.1.2+ 的 Client Store，并为旧版 RC 保留 runtime 回退。
+
 **Cutout Clash 0.5.5** is a standalone selectable DSH Web theme bundle built around original neo-brutalist and pop-art composition. It is a companion to `dsh-theme-acid-noir`; neither plugin replaces or patches the other.
 
 ## Visual system
