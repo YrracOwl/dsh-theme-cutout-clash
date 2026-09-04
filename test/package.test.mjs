@@ -7,7 +7,7 @@ const read = p => readFile(new URL(p, import.meta.url), 'utf8')
 test('standalone 0.5 bundle contract', async () => {
   const pkg = JSON.parse(await read('../package.json'))
   assert.equal(pkg.name, 'dsh-theme-cutout-clash')
-  assert.equal(pkg.version, '0.5.7')
+  assert.equal(pkg.version, '0.5.8')
   assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml')
   assert.equal(pkg.dsh.client.platform, 'web')
   assert.equal(pkg.dsh.client.immediately, true)
