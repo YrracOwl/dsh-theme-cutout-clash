@@ -1,0 +1,4 @@
+# Cutout Clash selectable theme bundle.
+- insert:
+    - id: ui-theme-cutout-clash
+      name: 'dsh-theme-cutout-clash'
