@@ -1,7 +1,7 @@
 {
   "name": "dsh-theme-cutout-clash",
-  "version": "0.5.9",
-  "description": "EN: Selectable neo-brutalist/pop-art themes for DeepSeek Harness Web with calm reading surfaces. ZH: 面向 DeepSeek Harness Web、兼顾安静阅读表面的新粗野主义与波普艺术主题。",
+  "version": "0.5.10",
+  "description": "EN: Selectable neo-brutalist/pop-art themes for DeepSeek Harness Web with calm reading surfaces. 0.5.10 fixes the queued-message banner and the composer attachment button in every variant. ZH: 面向 DeepSeek Harness Web、兼顾安静阅读表面的新粗野主义与波普艺术主题。0.5.10 修复全部变体的排队消息面板与输入框附件按钮。",
   "type": "module",
   "main": "lib/index.js",
   "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },

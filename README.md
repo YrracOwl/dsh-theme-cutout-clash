@@ -8,7 +8,7 @@ Cutout Clash is a selectable neo-brutalist/pop-art theme bundle for DeepSeek Har
 
 Cutout Clash 是面向 DeepSeek Harness Web 的可选择新粗野主义 / 波普艺术主题包：保持会话内容安静易读，同时增强 Shell、Composer、Goal 和转场表面。优先使用 DSH 0.1.2+ 的 Client Store，并为旧版 RC 保留 runtime 回退。
 
-**Cutout Clash 0.5.9** is a standalone selectable DSH Web theme bundle built around original neo-brutalist and pop-art composition. It is a companion to `dsh-theme-acid-noir`; neither plugin replaces or patches the other.
+**Cutout Clash 0.5.10** is a standalone selectable DSH Web theme bundle built around original neo-brutalist and pop-art composition. It is a companion to `dsh-theme-acid-noir`; neither plugin replaces or patches the other.
 
 ## Visual system
 
@@ -28,12 +28,19 @@ The theme follows **Loud edge, calm center**:
 
 ## Install
 
-```bash
-dsh plugin --profile web add ./dsh-theme-cutout-clash
-dsh web
+```powershell
+dsh plugin --profile web add dsh-theme-cutout-clash
 ```
 
-Then open **Settings → General → Cutout Clash theme**.
+Restart the existing DSH Web process afterwards: the Host scans the browser plugin roster at startup, so the three themes appear only after that restart. Then open **Settings → General → Cutout Clash theme**.
+
+Local development, from the parent directory of this checkout:
+
+```powershell
+dsh plugin --profile web add .\dsh-theme-cutout-clash
+```
+
+Either form records the package in the profile's `dsh.profile.bundles`, which is what serves the client bundle.
 
 Available choices:
 

@@ -7,7 +7,7 @@ const read = p => readFile(new URL(p, import.meta.url), 'utf8')
 test('standalone 0.5 bundle contract', async () => {
   const pkg = JSON.parse(await read('../package.json'))
   assert.equal(pkg.name, 'dsh-theme-cutout-clash')
-  assert.equal(pkg.version, '0.5.9')
+  assert.equal(pkg.version, '0.5.10')
   assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml')
   assert.equal(pkg.dsh.client.platform, 'web')
   assert.equal(pkg.dsh.client.immediately, true)
@@ -82,6 +82,109 @@ test('dark filled states define deliberate foreground contrast', async () => {
   assert.match(source, /--cc-shadow:#05070a/)
   assert.match(source, /'--dsw-alias-markdown-code-block': '#fffdf7'/)
   assert.match(source, /background:var\(--dsw-alias-markdown-code-block\); color:var\(--dsw-alias-label-primary\)/)
+})
+
+/**
+ * Relative luminance and WCAG contrast from a `#rgb`/`#rrggbb` literal — the
+ * same arithmetic the browser performs on the computed colors.
+ */
+function luminance(hex) {
+  let body = String(hex).replace('#', '')
+  if (body.length === 3) body = body.split('').map(c => c + c).join('')
+  const value = parseInt(body, 16)
+  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255].map(c => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+}
+
+function contrast(fg, bg) {
+  const a = luminance(fg)
+  const b = luminance(bg)
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
+
+/** Read one `const NAME = { ... }` token table, following a `...BASE` spread. */
+function tokenTable(source, name) {
+  const head = new RegExp(`const\\s+${name}\\s*=\\s*\\{`).exec(source)
+  if (head === null) throw new Error(`token table ${name} not found`)
+  const open = source.indexOf('{', head.index)
+  let depth = 0
+  let end = open
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === '{') depth += 1
+    else if (source[i] === '}') {
+      depth -= 1
+      if (depth === 0) { end = i; break }
+    }
+  }
+  const body = source.slice(open + 1, end)
+  const tokens = {}
+  const spread = /\.\.\.([A-Z][A-Z0-9_]*)/.exec(body)
+  if (spread !== null) Object.assign(tokens, tokenTable(source, spread[1]))
+  const pair = /'(--[a-z0-9-]+)'\s*:\s*'(#[0-9a-fA-F]{3,8})'/g
+  let match
+  while ((match = pair.exec(body)) !== null) tokens[match[1]] = match[2]
+  return tokens
+}
+
+test('queued-message dock and composer attachment button stay legible in every variant', async () => {
+  const source = await read('../lib/client.js')
+
+  // The built-in queue banner renders div[data-queue-dock] > div[panel]. The
+  // earlier [data-dsh-part="queue-dock"] selector matched nothing, so the panel
+  // kept whatever surface color the active variant happened to inherit.
+  assert.match(source, /\[data-queue-dock\] > div \{/)
+  assert.doesNotMatch(source, /data-dsh-part="queue-dock"/)
+
+  const variants = [
+    { label: 'cutout-clash', table: 'COMMON', body: "body\\[data-cutout-clash\\] \\{", scheme: 'light' },
+    { label: 'cutout-clash-night', table: 'NIGHT', body: 'body\\[data-cutout-clash="night"\\] \\{', scheme: 'dark' },
+    { label: 'cutout-clash-pop', table: 'POP', body: 'body\\[data-cutout-clash="pop"\\] \\{', scheme: 'light' },
+  ]
+
+  for (const variant of variants) {
+    const tokens = tokenTable(source, variant.table)
+
+    // `--cc-ink` is declared in the CSS layer's body rule, not in the token
+    // table: read the literal the rule actually paints with.
+    const rule = new RegExp(variant.body).exec(source)
+    assert.ok(rule, `${variant.label}: body rule missing`)
+    const inkMatch = /--cc-ink\s*:\s*(#[0-9a-fA-F]{3,8})/.exec(source.slice(rule.index, rule.index + 200))
+    assert.ok(inkMatch, `${variant.label}: --cc-ink missing from the body rule`)
+    const ink = inkMatch[1]
+
+    // The night variant inherits COMMON, so an unset override leaves the light
+    // cream surfaces under the light night text — that was the live bug. Tie
+    // each surface's lightness to the variant's declared color scheme instead
+    // of pinning hex literals, so palette edits stay free.
+    const surfaces = [
+      ['attachment button surface', tokens['--dsw-specific-selector']],
+      ['queue banner surface', tokens['--dsw-specific-tip']],
+    ]
+    for (const [what, surface] of surfaces) {
+      assert.ok(typeof surface === 'string', `${variant.label}: ${what} is undefined`)
+      const l = luminance(surface)
+      if (variant.scheme === 'dark') {
+        assert.ok(l < 0.2, `${variant.label}: ${what} ${surface} is too bright for a dark variant (luminance ${l.toFixed(3)})`)
+      } else {
+        assert.ok(l > 0.6, `${variant.label}: ${what} ${surface} is too dark for a light variant (luminance ${l.toFixed(3)})`)
+      }
+    }
+
+    const pairs = [
+      ['queue banner count/rows', tokens['--dsw-alias-label-primary'], tokens['--dsw-specific-tip']],
+      ['queue banner lead icon', tokens['--dsw-alias-label-tertiary'], tokens['--dsw-specific-tip']],
+      ['queue banner status', tokens['--dsw-alias-label-caption'] ?? tokens['--dsw-alias-label-tertiary'], tokens['--dsw-specific-tip']],
+      ['attachment button glyph', tokens['--dsw-alias-label-primary'], tokens['--dsw-specific-selector']],
+      ['attachment button hover glyph', tokens['--dsw-alias-bg-layer-1'], ink],
+    ]
+    for (const [what, fg, bg] of pairs) {
+      const ratio = contrast(fg, bg)
+      assert.ok(ratio >= 4.5, `${variant.label}: ${what} is ${ratio.toFixed(2)}:1 (${fg} on ${bg})`)
+    }
+  }
 })
 
 test('transition uses an early viewport curtain and shell-covering plates that stay under popups', async () => {
@@ -164,7 +267,7 @@ test('Night state fixes use stable semantic selectors and preserve popup geometr
 
 test('calm center avoids transcript animation and unrelated plugins', async () => {
   const source = await read('../lib/client.js')
-  for (const selector of ['[data-composer-card]', '[data-tool]', '[data-variant="think"]', '[data-goal-bar]', '[data-conversation-scroll]', '[data-terminal]', '[data-diff]', '[data-dsh-part="queue-dock"]']) {
+  for (const selector of ['[data-composer-card]', '[data-tool]', '[data-variant="think"]', '[data-goal-bar]', '[data-conversation-scroll]', '[data-terminal]', '[data-diff]', '[data-queue-dock]']) {
     assert.ok(source.includes(selector), `missing ${selector}`)
   }
   assert.doesNotMatch(source, /\[data-chat-flow-key\][^{]*\{[^}]*animation:/s)
