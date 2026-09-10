@@ -35,6 +35,13 @@ Markdown has distinct surfaces:
 
 Do not assume all clickable prose is an anchor. DSH base styles may set `text-decoration-line:none`; color/thickness alone do not create a visible underline.
 
+Composer-toolrow and queue surfaces:
+
+- The composer attachment button is `button[aria-label][class*="_add"]`; match it by the ARIA label plus a class substring, never by the module hash itself.
+- The queued-message banner is `div[data-queue-dock] > div[panel]`. `[data-dsh-part="queue-dock"]` does not exist in DSH and silently styled nothing.
+- Both components paint their own surface from `--dsw-specific-selector` / `--dsw-specific-tip` in their own CSS, so this theme overrides the color instead of assuming those tokens hold either `--dsw-alias-bg-layer-1` or `--dsw-alias-label-primary`: `COMMON` pins both to light surfaces, so `NIGHT` must override them explicitly or the light night text lands on a light surface.
+- `test/package.test.mjs` parses the token tables and asserts WCAG contrast for both components, tying each surface's luminance to the variant's declared color scheme. Keep that guard in sync when tokens change.
+
 ## Theme and Transition Invariants
 
 - Shared custom preference key: `dsh.theme.preference.v1`; motion key: `dsh-theme-cutout-clash.motion`.
